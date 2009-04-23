@@ -1,0 +1,51 @@
+INSTALL
+================================================================================
+
+1. Change the default system handler to Magnifty:
+
+class Cgn_MagentoSystemRunner extends Cgn_SystemRunner
+
+
+Edit boot/local/core.ini
+
+[object]
+class.loader=@lib.path@/lib_cgn_class_loader.php:Cgn_ClassLoader:defaultClassLoader
+sys.handler=@lib.path@/lib_cgn_core.php:Cgn_SystemRunner:defaultSystemHandler
+
+^ change sys.handler to
+
+sys.handler=@sys.path@/cognifty/modules/magnifty/magento_system_runner.php:Cgn_MagentoSystemRunner:defaultSystemHandler
+
+
+2. Setup the login signals
+
+Edit boot/local/signal.ini
+
+[config]
+mymagentoconnect.signal=login_success_after
+mymagentoconnect.slot=@sys.path@/modules/magnifty/slots.php:Cgn_Slot_Magento:userconnect:bindMagentoSession
+
+
+3. Setup the special layout areas for head and right columns.
+
+Edit boot/local/layout.ini
+
+[object]
+magento.head=@sys.path@/modules/magnifty/layout.php:Cgn_Magento_Layout:mageLayout:showMageHeader
+magento.right=@sys.path@/modules/magnifty/layout.php:Cgn_Magento_Layout:mageLayout:showMageRight
+
+
+4. Ensure your custom template has a "store.html.php" and a "store-right.html.php".
+
+The "store-right.html.php" file needs a special right-hand column for the checkout with 
+a CSS class of "col-right"
+
+<div class="col-right">
+<? Cgn_Template::parseTemplateSection('magento.right');?>
+</div>
+
+On both the "store.html.php" and "store-right.html.php" you need to add 
+<? Cgn_Template::parseTemplateSection('magento.head');?>
+
+... somewhere in the <head> section of your document.  This will ensure 
+that all Magento required Javascript and CSS files are loaded.
