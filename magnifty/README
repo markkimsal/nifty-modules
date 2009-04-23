@@ -1,3 +1,12 @@
+What is Magnifty?
+================================================================================
+Magnifty is a Cognifty module to forward Web requests into Magento and wrap the 
+output in a Cognifty template.  It also handles login events from both systems 
+so that someoned logged into either the Cognifty system or Magento will be 
+logged into to both.
+
+This module requires the Magento AdvUser module to fully function.
+
 INSTALL
 ================================================================================
 
