@@ -1,3 +1,20 @@
+What is remotewebdav?
+================================================================================
+This modules allows limited access to your cognifty installation via the WebDAV 
+protocol.  Although the access is limited, you can still access all the 
+functionality you need to customize any part of a running system.
+
+  Make backups of your configuration files.
+  Make changes to your configuration files.
+  Make template changes. (add new CSS/images)
+  Install new modules.
+  Override existing modules with your customizations.
+  Backup module code.
+
+The only thing you can't do that you might need to do on a regular basis is 
+download a datbase backup.  Also, you can't access or clear the cache.
+ 
+
 Installation
 ================================================================================
 Move the folder "remotewebdav" into your local-admin folder.
