@@ -1,15 +1,21 @@
 Installation
 ================================================================================
+Move the folder "remotewebdav" into your local-admin folder.
 
 For cognifty r18 and below:
 
-Add the following to boot/local/default.ini
-  [path]
-  override.admin.remotewebdav=@sys.path@/local-admin/remotewebdav
+	Add the following to boot/local/default.ini
+	  [path]
+	  override.admin.remotewebdav=@sys.path@/local-admin/remotewebdav
 
-Add the following to boot/admin/admin.ini
-  [path]
-  override.module.remotewebdav=@sys.path@/local-admin/remotewebdav
+	Add the following to boot/admin/admin.ini
+	  [path]
+	  override.module.remotewebdav=@sys.path@/local-admin/remotewebdav
+
+For cognifty r19 and above:
+	Add the following to boot/local/default.ini
+	  [path]
+	  override.admin.remotewebdav=@sys.path@/local-admin/remotewebdav
 
 If there already is a [path] section, simply add the lines into that section.
 
@@ -22,7 +28,7 @@ Konqueror/KDE:
   Add "webdavs://site.example.com/admin.php/remotewebdav/" to your Network Folders
   applet, or bookmark in konqueror
 
-Windows (not working fully):
+Windows XP (not working fully):
   From the START BUTTON, click on MY NETWORK PLACES.
   Click ADD A NETWORK PLACE from the left-hand menu.
   Next, select CHOOSE ANOTHER NETWORK LOCATION.
@@ -33,7 +39,9 @@ Windows (not working fully):
 
   Other programs which support webdav include: 
     EngInSite DataFreeway
-    
+ 
+Windows Vista:
+  Should be like XP.
 
 Mac OSX:
   Should behave as a normal webdav folder.
