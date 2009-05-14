@@ -1,14 +1,21 @@
 <?php
-
+Cgn::loadLibrary("Lib_Cgn_Core");
 class Cgn_MagentoSystemRunner extends Cgn_SystemRunner {
 
 
 	function runTickets() {
+
+		//this is needed so other parts of the sysmte can get the current request
+		Cgn_ObjectStore::storeObject('request://currentRequest',$this->currentRequest);
+		//turn off our own autoload so magento's can run
 		spl_autoload_unregister(array(Cgn_ObjectStore::$singleton, 'autoloadClass'));
-		require 'magento/app/Mage.php';
+		if(!include 'magento/app/Mage.php') {
+			Cgn_Template::showFatalError('404');
+			return false;
+		}
 		spl_autoload_register('__autoload');
 
-     error_reporting(1);
+		error_reporting(1);
 		$modulePath = Cgn_ObjectStore::getConfig('path://default/cgn/module');
 
 		//initialize the class if it has not been loaded yet (lazy loading)
@@ -30,7 +37,8 @@ class Cgn_MagentoSystemRunner extends Cgn_SystemRunner {
 		$template = array();
 		Cgn_ObjectStore::setArray("template://variables/", $template);
 
-		Cgn_ObjectStore::storeObject('request://currentRequest',$this->currentRequest);
+
+
 		while(count($this->ticketList)) {
 			$tk = array_shift($this->ticketList);
 
