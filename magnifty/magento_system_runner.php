@@ -37,8 +37,6 @@ class Cgn_MagentoSystemRunner extends Cgn_SystemRunner {
 		$template = array();
 		Cgn_ObjectStore::setArray("template://variables/", $template);
 
-
-
 		while(count($this->ticketList)) {
 			$tk = array_shift($this->ticketList);
 
@@ -47,20 +45,6 @@ class Cgn_MagentoSystemRunner extends Cgn_SystemRunner {
 			if (!$includeResult) {
 				$includeResult = $this->includeService($tk);
 			}
-			//chnage everything to the Magnifty Proxy service
-			if (!$includeResult) {
-				$tk->module  = 'magnifty';
-				$tk->service = 'main';
-				$tk->event   = 'main';
-				$tk->filename   = 'main.php';
-				$tk->className   = 'Cgn_Service_Magnifty_Main';
-				$tk->isRouted   = TRUE;
-
-				//special event for onepage checkout
-				if (in_array('onepage', $req->getvars)) {
-					$tk->event   = 'onepage';
-				}
-			} 
 
 			$service = $this->runCogniftyTicket($tk);
 			$this->ticketDoneList[] = $tk;
@@ -95,7 +79,35 @@ class Cgn_MagentoSystemRunner extends Cgn_SystemRunner {
 		}
 		Cgn_Template::cleanAll();
 		$mySession->close();
+	}
 
+
+	/**
+	 * If this ticket is not routed, then try to load the magnifty module executor.
+	 *
+	 * If it is routed, then we alredy tried to get the magnifty module, do normal 
+	 * FNF handling
+	 *
+	 */
+	function handleFileNotFound($tk) {
+		if (!$tk->isRouted) {
+			//change everything to the Magnifty Proxy service
+			if (!$includeResult) {
+				$tk->module  = 'magnifty';
+				$tk->service = 'main';
+				$tk->event   = 'main';
+				$tk->filename   = 'main.php';
+				$tk->className   = 'Cgn_Service_Magnifty_Main';
+				$tk->isRouted   = TRUE;
+
+				//special event for onepage checkout
+				if (in_array('onepage', $req->getvars)) {
+					$tk->event   = 'onepage';
+				}
+				$includeResult = $this->includeService($tk);
+			} 
+			return TRUE;
+		}
+		return parent::handleFileNotFound($tk);
 	}
 }
-?>
