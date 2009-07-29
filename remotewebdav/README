@@ -41,6 +41,19 @@ Optional: add a group with the code 'radmin'.  Add special users into this group
 Usage
 ================================================================================
 
+If your webdav client asks for a server you should try one of the following:
+ 
+  example.com
+  http://example.com
+  https://example.com
+  webdav://example.com
+  webdavs://example.com
+
+If your webdav client asks for a folder you should try one of the following:
+
+  /path/to/cognifty/admin.php/remotewebdav
+
+  
 Konqueror/KDE:
   Add "webdavs://site.example.com/admin.php/remotewebdav/" to your Network Folders
   applet, or bookmark in konqueror
