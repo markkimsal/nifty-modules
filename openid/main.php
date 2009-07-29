@@ -26,6 +26,8 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 		Cgn::loadModLibrary( 'Openid::Openid_HMAC');
 		Cgn::loadModLibrary( 'Openid::Openid_Nonce');
 
+		//extended attribute exchange
+		Cgn::loadModLibrary( 'Openid::Openid_AX');
 
 		$openid = $this->_getOpenIDURL();
 		$consumer = Openid_Common_getConsumer();
@@ -47,6 +49,26 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 		if ($sreg_request) {
 			$auth_request->addExtension($sreg_request);
 		}
+
+		$ax_request = new Auth_Openid_Ax_FetchRequest();
+		$email_attr = new Auth_OpenID_AX_AttrInfo('http://schema.openid.net/contact/email', 1, TRUE, 'email');
+		$uname_attr = new Auth_OpenID_AX_AttrInfo('http://axschema.org/namePerson/friendly', 1, TRUE, 'nickname');
+		$homep_attr = new Auth_OpenID_AX_AttrInfo('http://axschema.org/web/default', 1, TRUE, 'sites');
+		$count_attr = new Auth_OpenID_AX_AttrInfo('http://axschema.org/contact/country/home', 1, TRUE, 'country');
+		$langu_attr = new Auth_OpenID_AX_AttrInfo('http://axschema.org/pref/language', 1, TRUE, 'language');
+
+		$namef_attr = new Auth_OpenID_AX_AttrInfo('http://axschema.org/namePerson/first', 1, TRUE, 'first');
+		$namel_attr = new Auth_OpenID_AX_AttrInfo('http://axschema.org/namePerson/last',  1, TRUE, 'last');
+
+		$ax_request->add($email_attr);
+		$ax_request->add($uname_attr);
+		$ax_request->add($homep_attr);
+		$ax_request->add($namef_attr);
+		$ax_request->add($namel_attr);
+		$ax_request->add($langu_attr);
+		$ax_request->add($count_attr);
+		$auth_request->addExtension($ax_request);
+
 
 		$policy_uris = $_GET['policies'];
 
@@ -91,6 +113,7 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 			if (Auth_OpenID::isFailure($form_html)) {
 				displayError("Could not redirect to server: " . $form_html->message);
 			} else {
+//				var_dump($form);exit();
 $t['form'] = $form;
 $t['js'] = 
                "<script>".
@@ -98,7 +121,7 @@ $t['js'] =
                "for (var i = 0; i < elements.length; i++) {".
                "  elements[i].style.display = \"none\";".
                "}".
-		" document.forms[0].submit(); //*/".
+		" document.getElementById('".$form_id."').submit(); //*/".
                "</script>";
 
 //echo "form";
@@ -117,6 +140,7 @@ $t['js'] =
 		Cgn::loadModLibrary( 'Openid::Openid_HMAC');
 		Cgn::loadModLibrary( 'Openid::Openid_Nonce');
 
+		Cgn::loadModLibrary( 'Openid::Openid_AX');
 
 		$consumer = Openid_Common_getConsumer();
 
@@ -167,6 +191,13 @@ $t['js'] =
 					"'.";
 			}
 
+			//ax
+			$ax_resp = Auth_OpenID_AX_FetchResponse::fromSuccessResponse($response);
+			if($ax_resp) {
+				var_dump($ax_resp->get('http://axschema.org/namePerson/first'));
+				var_dump($ax_resp->get('http://axschema.org/pref/language'));
+			}
+
 		$pape_resp = Auth_OpenID_PAPE_Response::fromSuccessResponse($response);
 
 		if ($pape_resp) {
@@ -199,6 +230,7 @@ $t['js'] =
 				$success .= "<p>No PAPE response was sent by the provider.</p>";
 		}
     	}
+
 		$t['success'] = $success;
 		$t['msg'] = $msg;
 	}

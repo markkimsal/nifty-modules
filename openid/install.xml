@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<project name="Open ID Cognifty Module" default="command" basedir=".">
+
+<!--
+    <taskdef name="nftconfigfile" classname="phing.tasks.nft.NftConfigFile" />
+-->
+  <target name="install">
+      <exec command="ls ${dir.zone.master}" outputProperty="command.out"/>
+	  <phingcall target="Copyfiles"/>
+  </target>
+
+  <target name="Copyfiles" 
+	  description="Copy files from source directory (${module.source.dir}) into the target directory (${module.target.dir})">
+	  <copy todir="${module.target.dir}">
+		  <fileset dir="${module.source.dir}">
+			  <exclude name="install.ini"/>
+		  </fileset>
+	  </copy>
+  </target>
+</project>

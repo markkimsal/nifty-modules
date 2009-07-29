@@ -33,6 +33,7 @@ Cgn::loadModLibrary("Openid::Yadis_PlainHTTPFetcher");
 Cgn::loadModLibrary("Openid::Yadis_ParanoidHTTPFetcher");
 Cgn::loadModLibrary("Openid::Openid_BigMath");
 Cgn::loadModLibrary("Openid::Openid_URINorm");
+Cgn::loadModLibrary("Openid::Openid_Parse");
 #require_once "Auth/Yadis/PlainHTTPFetcher.php";
 #require_once "Auth/Yadis/ParanoidHTTPFetcher.php";
 #require_once "Auth/OpenID/BigMath.php";

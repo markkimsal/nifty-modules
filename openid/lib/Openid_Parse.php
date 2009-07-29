@@ -82,7 +82,8 @@
 /**
  * Require Auth_OpenID::arrayGet().
  */
-require_once "Auth/OpenID.php";
+//require_once "Auth/OpenID.php";
+//Cgn::loadModLibrary("Openid::Openid_URINorm");
 
 class Auth_OpenID_Parse {
 
