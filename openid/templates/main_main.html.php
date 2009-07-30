@@ -13,47 +13,29 @@
       }
       .verify-form {
         border: 1px solid #777777;
-        background: #dddddd;
+        background: #FFF;
         margin-top: 1em;
-        padding-bottom: 0em;
+        padding: 1em;
       }
+
+      .verify-form img {
+		border:none;
+		margin-right:1em;
+		}
   </style>
 
+    <h1>Login with OpenID&reg;</h1>
     <div class="verify-form" id="verify-form-google">
-	<form method="get" action="<?=cgn_appurl('openid','main','gAuth');?>">
-        <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" size="55" />
-		<input type="image" src="<?=cgn_url().'media/icons/default/login_btn_google.png';?>" value="Login with Google" />
-      </form>
-    </div>
+			<a href="<?=cgn_appurl('openid','main','gAuth', array( 'openid_identifier'=>urlencode('https://www.google.com/accounts/o8/id')));?>" border="0"><img border="0" src="<?=cgn_url().'media/icons/default/login_btn_google.png';?>" title="Login with Google" alt="Login with Google"/></a>
+			<a href="<?=cgn_appurl('openid','main','yAuth');?>" border="0"><img border="0" src="<?=cgn_url().'media/icons/default/login_btn_yahoo.png';?>" title="Login with Yahoo" alt="Login with Yahoo"/></a>
+
+		<form method="get" action="<?=cgn_appurl('openid','main','tryAuth');?>">
+		Any OpenID&reg;&nbsp;Provider:
+		<br/>
+			<input type="hidden" name="action" value="verify" />
+			<input type="text" name="openid_identifier" value="http://" size="55" />
+			<input type="submit" value="Verify" />
+		</form>
+	</div>
 
 
-
-    <h1>PHP OpenID Authentication Example</h1>
-    <p>
-      This example consumer uses the <a
-      href="http://www.openidenabled.com/openid/libraries/php/">PHP
-      OpenID</a> library. It just verifies that the URL that you enter
-      is your identity URL.
-    </p>
-
-    <?php if (isset($msg)) { print "<div class=\"alert\">$msg</div>"; } ?>
-    <?php if (isset($error)) { print "<div class=\"error\">$error</div>"; } ?>
-    <?php if (isset($success)) { print "<div class=\"success\">$success</div>"; } ?>
-
-    <div class="verify-form" id="verify-form">
-	<form method="get" action="<?=cgn_appurl('openid','main','tryAuth');?>">
-        Identity&nbsp;URL:
-        <input type="hidden" name="action" value="verify" />
-        <input type="text" name="openid_identifier" value="" size="55" />
-
-        <p>Optionally, request these PAPE policies:</p>
-        <p>
-        <?php global $pape_policy_uris; foreach ($pape_policy_uris as $i => $uri) {
-          print "<input type=\"checkbox\" name=\"policies[]\" value=\"$uri\" />";
-          print "$uri<br/>";
-        } ?>
-        </p>
-
-        <input type="submit" value="Verify" />
-      </form>
-    </div>

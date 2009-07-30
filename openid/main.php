@@ -36,7 +36,7 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 		//extended attribute exchange
 		Cgn::loadModLibrary( 'Openid::Openid_AX');
 
-		$openid = $this->_getOpenIDURL();
+		$openid = $this->_getOpenIDURL($req);
 //		var_dump($openid);exit();
 		$consumer = Openid_Common_getConsumer();
 
@@ -119,6 +119,75 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 		}
 	}
 
+	public function yAuthEvent($req, &$t) {
+		if (!$this->_loadOpenId()) {
+			return FALSE;
+		}
+
+		$username = $req->cleanString('username');
+		if (!$username) {
+			$this->presenter = 'redirect';
+			$t['url'] = cgn_appurl('openid', 'main', 'yLogin');
+			return TRUE;
+		}
+		$openid = 'https://me.yahoo.com/'.$username;
+		$consumer = Openid_Common_getConsumer();
+
+		// Begin the OpenID authentication process.
+		$auth_request = $consumer->begin($openid);
+
+		// No auth request means we can't begin OpenID.
+		if (!$auth_request) {
+			trigger_error ("Authentication error; not a valid OpenID.");
+			return FALSE;
+		}
+
+		//yahoo doesn't support any extensions ATM
+		if ($auth_request->shouldSendRedirect()) {
+			$redirect_url = $auth_request->redirectURL(Openid_Common_getTrustRoot(),
+													   Openid_Common_getReturnTo());
+
+			// If the redirect URL can't be built, display an error
+			// message.
+			if (Auth_OpenID::isFailure($redirect_url)) {
+				displayError("Could not redirect to server: " . $redirect_url->message);
+			} else {
+				// Send redirect.
+				header("Location: ".$redirect_url);
+			}
+		} else {
+			// Generate form markup and render it.
+			$form_id = 'openid_message';
+			$form = $auth_request->formMarkup(Openid_Common_getTrustRoot(), 
+				Openid_Common_getReturnTo(), 
+				false,
+				array('id' => $form_id));
+
+
+			// Display an error if the form markup couldn't be generated;
+			// otherwise, render the HTML.
+			if (Auth_OpenID::isFailure($form)) {
+				displayError("Could not redirect to server: " . $form->message);
+			} else {
+				$this->presenter = 'self';
+				$t['form'] = $form;
+				$t['js'] = 
+				"<script>".
+				"var elements = document.getElementById('openid_message').elements;".
+				"for (var i = 0; i < elements.length; i++) {".
+				"  elements[i].style.display = \"none\";".
+				"}".
+				" document.getElementById('".$form_id."').submit(); //*/".
+				"</script>";
+			}
+		}
+	}
+
+	/**
+	 * Just show the HTML page
+	 */
+	public function yLoginEvent($req, &$t) {
+	}
 
 	public function tryAuthEvent($req, &$t) {
 		if (!$this->_loadOpenId()) {
@@ -127,7 +196,7 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 		//extended attribute exchange
 		Cgn::loadModLibrary( 'Openid::Openid_AX');
 
-		$openid = $this->_getOpenIDURL();
+		$openid = $this->_getOpenIDURL($req);
 		$consumer = Openid_Common_getConsumer();
 
 		// Begin the OpenID authentication process.
@@ -293,6 +362,8 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 		$return_to = Openid_Common_getReturnTo();
 		$response = $consumer->complete($return_to);
 
+		$msg = '';
+		$success = '';
 		// Check the response status.
 		if ($response->status == Auth_OpenID_CANCEL) {
 			// This means the authentication was cancelled.
@@ -358,7 +429,7 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 					$success .= "<p>No PAPE policies affected the authentication.</p>";
 				}
 
-				if ($pape_resp->auth_age) {
+				if (isset($pape_resp->auth_age)) {
 					$age = htmlentities($pape_resp->auth_age);
 					$success .= "<p>The authentication age returned by the " .
 						"server is: <tt>".$age."</tt></p>";
@@ -379,20 +450,19 @@ class Cgn_Service_Openid_Main extends Cgn_Service {
 		$t['msg'] = $msg;
 	}
 
-	public function _getOpenIDURL() {
-		// Render a default page if we got a submission without an openid
-		// value.
+	/**
+	 * Try two places to get the openID provider url
+	 */
+	public function _getOpenIDURL($req) {
+
+		if ($url = $req->cleanString('openid_identifier')) {
+			return $url;
+		}
+
 		if (empty($_GET['openid_identifier'])) {
 			trigger_error("Problem with OpenID engine; expected OpenID URL");
 			return FALSE;
-			/*
-			$error = "Expected an OpenID URL.";
-			include 'index.php';
-			exit(0);
-			 */
 		}
-
-		return $_GET['openid_identifier'];
 	}
 
 	public function _getReturnTo($provider=NULL) {
