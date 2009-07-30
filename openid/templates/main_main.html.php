@@ -11,13 +11,23 @@
         border: 1px solid #ff0000;
         background: #ffaaaa;
       }
-      #verify-form {
+      .verify-form {
         border: 1px solid #777777;
         background: #dddddd;
         margin-top: 1em;
         padding-bottom: 0em;
       }
   </style>
+
+    <div class="verify-form" id="verify-form-google">
+	<form method="get" action="<?=cgn_appurl('openid','main','gAuth');?>">
+        <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" size="55" />
+		<input type="image" src="<?=cgn_url().'media/icons/default/login_btn_google.png';?>" value="Login with Google" />
+      </form>
+    </div>
+
+
+
     <h1>PHP OpenID Authentication Example</h1>
     <p>
       This example consumer uses the <a
@@ -30,7 +40,7 @@
     <?php if (isset($error)) { print "<div class=\"error\">$error</div>"; } ?>
     <?php if (isset($success)) { print "<div class=\"success\">$success</div>"; } ?>
 
-    <div id="verify-form">
+    <div class="verify-form" id="verify-form">
 	<form method="get" action="<?=cgn_appurl('openid','main','tryAuth');?>">
         Identity&nbsp;URL:
         <input type="hidden" name="action" value="verify" />

@@ -18,6 +18,14 @@ class Cgn_Service_Openid_Realm extends Cgn_Service {
 		}
 	}
 
+	public function gFinishAuthEvent($req, &$t) {
+
+		$myHandler =& Cgn_ObjectStore::getObject("object://defaultSystemHandler");
+		$newTicket = new Cgn_SystemTicket('openid', 'main', 'gFinishAuth');
+		array_push($myHandler->ticketList, $newTicket);
+	}
+
+
 	/**
 	 * Push out an XRDS file proclaimin that this service is the return to url.
 	 */

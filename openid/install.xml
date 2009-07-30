@@ -8,6 +8,7 @@
   <target name="install">
       <exec command="ls ${dir.zone.master}" outputProperty="command.out"/>
 	  <phingcall target="Copyfiles"/>
+	  <phingcall target="CopyIcons"/>
   </target>
 
   <target name="Copyfiles" 
@@ -18,4 +19,14 @@
 		  </fileset>
 	  </copy>
   </target>
+  <target name="CopyIcons" 
+	  description="Copy login buttons for google, yahoo, etc. to media/icons/default/  (from: ${module.source.dir}/media/icons)">
+      <exec command="ls ${module.source.dir}/media/icons" outputProperty="command.out"/>
+	  <copy todir="media/icons/default/">
+		  <fileset dir="${module.source.dir}/media/icons">
+			  <include name="*.png"/>
+		  </fileset>
+	  </copy>
+  </target>
+
 </project>
