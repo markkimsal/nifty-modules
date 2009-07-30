@@ -36,7 +36,7 @@ $pape_policy_uris = array(
 			  PAPE_AUTH_PHISHING_RESISTANT
 			  );
 
-function &getStore() {
+function getStore() {
     /**
      * This is where the example will store its OpenID information.
      * You should change this path if you want the example store to be
@@ -55,7 +55,7 @@ function &getStore() {
     return new Auth_OpenID_FileStore($store_path);
 }
 
-function &Openid_Common_getConsumer() {
+function Openid_Common_getConsumer() {
     /**
      * Create a consumer object using the store object created
      * earlier.
