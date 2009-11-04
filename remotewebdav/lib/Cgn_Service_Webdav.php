@@ -384,6 +384,11 @@ $t['webdavResponse'] = '<?xml version="1.0" encoding="utf-8" ?>
 			return;
 		}
 
+		if (strstr($this->headerStatus, ' 40') !== FALSE) {
+			header($this->headerStatus);
+			return;
+		}
+
 		$webdavResponse = $this->generateResponse();
 		header($this->headerStatus);
 
@@ -443,6 +448,12 @@ fclose($tmp);
 
 		$fullFile = $dir.'/'.$entry;
 
+		if (! file_exists($fullFile)) {
+			$response = new Cgn_Webdav_Response(basename($entry));
+			$response->addProp('displayName', basename($entry));
+			$this->headerStatus = 'HTTP/1.1 404 File Not Found';
+			return;
+		}
 		$response = new Cgn_Webdav_Response(basename($entry));
 		$response->addProp('displayName', basename($entry));
 
