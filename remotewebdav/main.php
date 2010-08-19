@@ -4,7 +4,18 @@ Cgn::loadModLibrary('Remotewebdav::Cgn_Service_Webdav', 'admin');
 class Cgn_Service_Remotewebdav_Main extends Cgn_Service_Webdav {
 
 	protected $defaultDavDir = 'templates/metro01';
+	protected $authMethod    = 'basic';
+	public    $usesConfig    = true;
 
+
+	public function init($m, $s, $e, $u) {
+		parent::init($m, $s, $e, $u);
+		$auth = $this->getConfig('auth');
+		if (isset($auth['method'])) {
+			$this->authMethod = $auth['method'];
+		}
+		return true;
+	}
 
 	/**
 	 * create a virtual directory showing boot/ templates/ and local-modules

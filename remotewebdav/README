@@ -41,19 +41,6 @@ Optional: add a group with the code 'radmin'.  Add special users into this group
 Usage
 ================================================================================
 
-If your webdav client asks for a server you should try one of the following:
- 
-  example.com
-  http://example.com
-  https://example.com
-  webdav://example.com
-  webdavs://example.com
-
-If your webdav client asks for a folder you should try one of the following:
-
-  /path/to/cognifty/admin.php/remotewebdav
-
-  
 Konqueror/KDE:
   Add "webdavs://site.example.com/admin.php/remotewebdav/" to your Network Folders
   applet, or bookmark in konqueror
@@ -72,6 +59,20 @@ Windows XP (not working fully):
  
 Windows Vista:
   Should be like XP.
+
+Windows 7:
+  Windows 7 does not support Basic authentication over SSL.  You will need to 
+  change the module settings to use "digest" authentication.  Login to the admin 
+  panel, go to the Module Manager, and click "change settings" for the 
+  Remotewebdav module.
+
+  **YOUR NORMAL PASSWORD WON'T WORK**
+  Because digest authentication requires the authenticating system to store a copy 
+  of the user's password in plain text, digest authentication will not work with your 
+  normal password.  You must use your "API Agent" key as your password along with 
+  your normal username.
+
+  Enable your API Agent and copy your agent key from the account settings page.
 
 Mac OSX:
   Should behave as a normal webdav folder.

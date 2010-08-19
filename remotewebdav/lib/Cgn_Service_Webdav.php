@@ -31,14 +31,61 @@
    </D:multistatus>
 */
 
-class Cgn_Service_Webdav extends Cgn_Service {
+class Cgn_Service_Webdav extends Cgn_Service_Admin {
 
 	protected $headerStatus  = 'HTTP/1.1 200 OK';
 	protected $defaultDavDir = 'non/existant';
 	protected $responseList  = array();
 	public    $presenter     = 'self';
 
+	protected $authMethod    = 'basic';
+
 	public function authorize($e, $u) {
+		if (isset($_SERVER['HTTPS']))  {
+			$realm = "SSL Secure remote administration";
+		} else {
+			$realm = "NOT SECURE, submitting password not recommended";
+		}
+
+		if (strtolower($this->authMethod) == 'basic') {
+			$result = $this->authorizeBasic($e, $u);
+			if (!($u->belongsToGroup('admin') || $u->belongsToGroup('radmin')) || !isset($_SERVER['PHP_AUTH_USER'])) {
+				$this->presenter = 'none';
+				header('HTTP/1.0 401 UNAUTHORIZED');
+				header('WWW-Authenticate: Basic realm="'.$realm.'"');
+				header('Content-Type: text/xml; charset=utf-8');
+				echo '<?xml version="1.0" encoding="utf-8" ?>'."\n".'<D:response xmlns:D="DAV:"/>';
+
+				exit();
+			}
+
+		} else {
+
+			$result = $this->authorizeDigest($e, $u);
+			if (!($u->belongsToGroup('admin') || $u->belongsToGroup('radmin')) || !isset($_SERVER['PHP_AUTH_DIGEST'])) {
+				$this->presenter = 'none';
+				header('HTTP/1.0 401 UNAUTHORIZED');
+
+				header('WWW-Authenticate: Digest realm="'.$realm.'", qop="auth", nonce="'.uniqid().'", opaque="'.md5($realm).'"');
+				header('Content-Type: text/xml; charset=utf-8');
+				echo '<?xml version="1.0" encoding="utf-8" ?>'."\n".'<D:response xmlns:D="DAV:"/>';
+				exit();
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Perform HTTP Basic-auhorization
+	 */
+	public function authorizeBasic($e, $u) {
+		if (isset($_SERVER['HTTPS']))  {
+			$realm = "SSL Secure remote administration";
+		} else {
+			$realm = "NOT SECURE, submitting password not recommended";
+		}
+
 		if ($u->isAnonymous() && isset($_SERVER['PHP_AUTH_USER'])) {
 			$req  = Cgn_SystemRequest::getCurrentRequest();
 			$req->getvars['email'] = $_SERVER['PHP_AUTH_USER'];
@@ -46,27 +93,81 @@ class Cgn_Service_Webdav extends Cgn_Service {
 
 			if ($u->login($req->cleanString('email'),
 				$req->cleanString('password'))) {
-				$u->bindSession();
+				//$u->bindSession();
 				$this->user = $u;
 				$this->emit('login_success_after');
 				unset($this->user);
 			}
 		}
 
-		if (!($u->belongsToGroup('admin') || $u->belongsToGroup('radmin')) || !isset($_SERVER['PHP_AUTH_USER'])) {
-			$this->presenter = 'none';
-			header('HTTP/1.0 401 UNAUTHORIZED');
-			if (isset($_SERVER['HTTPS']))  {
-				header('WWW-Authenticate: Basic realm="SSL Secure remote administration"');
-			} else {
-				header('WWW-Authenticate: Basic realm="NOT SECURE, submitting password not recommended"');
-			}
-			header('Content-Type: text/xml; charset="utf-8"');
-			exit();
+		return TRUE;
+	}
+
+	/**
+	 * Perform HTTP Digest-auhorization
+	 */
+	public function authorizeDigest($e, $u) {
+		if (isset($_SERVER['HTTPS']))  {
+			$realm = "SSL Secure remote administration";
+		} else {
+			$realm = "NOT SECURE, submitting password not recommended";
 		}
+
+
+		if ($u->isAnonymous() && isset($_SERVER['PHP_AUTH_DIGEST'])) {
+			$req  = Cgn_SystemRequest::getCurrentRequest();
+			// protect against missing data
+			$needed_parts = array('nonce'=>1, 'nc'=>1, 'cnonce'=>1, 'qop'=>1, 'username'=>1, 'uri'=>1, 'response'=>1, 'realm'=>1);
+			$data = array();
+			$keys = implode('|', array_keys($needed_parts));
+
+			preg_match_all('@(' . $keys . ')=(?:([\'"])([^\2]+?)\2|([^\s,]+))@', $_SERVER['PHP_AUTH_DIGEST'], $matches, PREG_SET_ORDER);
+
+			foreach ($matches as $m) {
+				$data[$m[1]] = $m[3] ? $m[3] : $m[4];
+				unset($needed_parts[$m[1]]);
+			}
+
+			$authData = $needed_parts ? false : $data;
+
+			if ($authData != false) {
+				$uname = $authData['username'];
+				$uFinder = new Cgn_DataItem('cgn_user');
+				$uFinder->andWhere('username', $uname);
+				$uFinder->andWhere('id_provider', 'self');
+				$uFinder->_rsltByPkey = FALSE;
+				$uResults = $uFinder->find();
+				$user = $uResults[0];
+				if (!is_object($user)) { return false;}
+
+
+				$A1 = md5($authData['username'] . ':' . $realm . ':' . $user->get('agent_key'));
+				$A2 = md5($_SERVER['REQUEST_METHOD'].':'.$authData['uri']);
+				$valid_response = md5($A1.':'.$authData['nonce'].':'.$authData['nc'].':'.$authData['cnonce'].':'.$authData['qop'].':'.$A2);
+
+/*
+var_dump($authData['realm']);
+var_dump($authData['response']);
+var_dump($valid_response);
+exit();
+*/
+				if ($authData['response'] == $valid_response) {
+
+					$u->userId   = $user->get('cgn_user_id');
+					$u->username = $authData['username'];
+					$u->loadGroups();
+					$u->bindSession();
+					$this->user = $u;
+					$this->emit('login_success_after');
+					unset($this->user);
+				}
+			}
+		}
+
 
 		return TRUE;
 	}
+
 
 	public function processEvent($e, $req, &$t) {
 
@@ -193,7 +294,7 @@ fclose($tmp);
 
 
 	public function optionsEvent($req, &$t) {
-		header('DAV: 1, 2'); //, access-control, workspace');
+		header('DAV: 1, 2') //, access-contro, workspace');
 		header('Allow: OPTIONS, HEAD, GET, POST, PUT, PROPFIND< PROPPATCH, ACL');
 
 		$t['webdavResponse'] = '<?xml version="1.0" encoding="utf-8" ?>
@@ -384,11 +485,6 @@ $t['webdavResponse'] = '<?xml version="1.0" encoding="utf-8" ?>
 			return;
 		}
 
-		if (strstr($this->headerStatus, ' 40') !== FALSE) {
-			header($this->headerStatus);
-			return;
-		}
-
 		header('X-Dav-Powered-By: PHP WebDAV (+http://cognifty.com/)');
 		header('MS-Author-Via: DAV');
 		$webdavResponse = $this->generateResponse();
@@ -454,12 +550,6 @@ fclose($tmp);
 
 		$fullFile = $dir.'/'.$entry;
 
-		if (! file_exists($fullFile)) {
-			$response = new Cgn_Webdav_Response(basename($entry));
-			$response->addProp('displayName', basename($entry));
-			$this->headerStatus = 'HTTP/1.1 404 File Not Found';
-			return;
-		}
 		$response = new Cgn_Webdav_Response(basename($entry));
 		$response->addProp('displayName', basename($entry));
 
