@@ -193,11 +193,11 @@ fclose($tmp);
 
 
 	public function optionsEvent($req, &$t) {
-		header('DAV: 1, 2, access-contro, workspace');
-		header('Allow: OPTIONS, GET, PUT, PROPFIND< PROPPATCH, ACL');
+		header('DAV: 1, 2'); //, access-control, workspace');
+		header('Allow: OPTIONS, HEAD, GET, POST, PUT, PROPFIND< PROPPATCH, ACL');
 
 		$t['webdavResponse'] = '<?xml version="1.0" encoding="utf-8" ?>
-			<D:options-response xmlns:D="DAV:"></D:options-response>';
+<D:options-response xmlns:D="DAV:"></D:options-response>';
 	}
 
 	/**
@@ -389,13 +389,19 @@ $t['webdavResponse'] = '<?xml version="1.0" encoding="utf-8" ?>
 			return;
 		}
 
+		header('X-Dav-Powered-By: PHP WebDAV (+http://cognifty.com/)');
+		header('MS-Author-Via: DAV');
 		$webdavResponse = $this->generateResponse();
+		if ($webdavResponse == '') {
+			$webdavResponse = $t['webdavResponse'];
+		}
 		header($this->headerStatus);
+		header('X-WebDAV-Status: '. substr($this->headerStatus, 9));
 
 		if (isset($t['contentType'])) {
 			header('Content-Type: '.$t['contentType']);
 		} else {
-			header('Content-Type: text/xml; charset="utf-8"');
+			header('Content-Type: text/xml; charset=utf-8');
 		}
 		if (isset($t['sendFile'])) {
 			header('Content-Length: '.filesize($t['sendFile']));
